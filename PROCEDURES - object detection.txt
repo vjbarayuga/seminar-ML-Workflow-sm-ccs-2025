@@ -1,0 +1,57 @@
+⚙️ STEP-BY-STEP IMPLEMENTATION
+
+🧰 Step 1: Install Required Packages
+
+In your environment, install:
+pip install streamlit torch torchvision opencv-python pillow
+
+
+Clone YOLOv5:
+git clone https://github.com/ultralytics/yolov5
+cd yolov5
+pip install -r requirements.txt
+
+
+🖥️ Step 2: Create app.py for Streamlit
+
+import streamlit as st
+from PIL import Image
+import torch
+import os
+
+# Load YOLOv5 model
+@st.cache_resource
+def load_model():
+    model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+    return model
+
+model = load_model()
+
+# Streamlit UI
+st.title("🔍 Object Detection App using YOLOv5")
+st.write("Upload an image, and the model will detect and classify objects.")
+
+uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+
+if uploaded_file:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
+
+    # Run detection
+    with st.spinner('Detecting objects...'):
+        results = model(image)
+        results.render()  # draw boxes on image
+
+    # Show results
+    st.image(results.ims[0], caption='Detected Image', use_column_width=True)
+
+    # Display prediction labels and confidence
+    st.subheader("📋 Predictions:")
+    for *box, conf, cls in results.xyxy[0].tolist():
+        st.write(f"🔸 {model.names[int(cls)]} - {conf:.2f} confidence")
+
+
+🚀 Step 3: Run the Streamlit App
+
+Run the app using:
+streamlit run app.py
